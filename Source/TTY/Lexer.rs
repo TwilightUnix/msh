@@ -4,8 +4,10 @@
 ** SPDX-License-Identifier: Apache-2.0
 */
 
-#[derive(PartialEq)]
-enum TokenKind {
+/* Lexer.rs - tty lexer for  */
+
+#[derive(PartialEq, Debug)]
+pub enum TokenKind {
       TK_Word, // plain text: ls, -l, file.txt, VAR=x, *.rs
 
       /* Operators */
@@ -25,13 +27,11 @@ enum TokenKind {
       TK_Pipe,        // "|" pipe
       TK_Or,          // "||" or operator
       TK_Tilde,       // "~" tilde (home)
-      TK_SQuote,      // ' single quotation mark
-      TK_DQuote,      // " double quotation mark
-      TK_Hash,        // "#" hash (comment)
 
       TK_EOF, // End of line
 }
 
+#[derive(Debug)]
 pub struct Token<'a> {
       pub tk: TokenKind,
       pub val: &'a str,
@@ -39,13 +39,150 @@ pub struct Token<'a> {
 
 pub fn Tokenize<'a>(buffer: &'a str) -> Vec<Token<'a>> {
       let mut tokens: Vec<Token<'a>> = Vec::new();
-      let mut cur = buffer.chars().peekable();
+      let mut cur = buffer.char_indices().peekable();
 
-      while let Some(c) = cur.next() {
-            if c == ' ' {
-                  continue;
+      while let Some((i, c)) = cur.next() {
+            match c {
+                  ' ' | '\t' => continue,
+                  '#' => break, // comment: ignore rest of line
+                  ';' => tokens.push(Token {
+                        tk: TokenKind::TK_Semicolon,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '(' => tokens.push(Token {
+                        tk: TokenKind::TK_LRParen,
+                        val: &buffer[i..i + 1],
+                  }),
+                  ')' => tokens.push(Token {
+                        tk: TokenKind::TK_RRParen,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '{' => tokens.push(Token {
+                        tk: TokenKind::TK_LCParen,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '}' => tokens.push(Token {
+                        tk: TokenKind::TK_RCParen,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '!' => tokens.push(Token {
+                        tk: TokenKind::TK_Exclamation,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '$' => tokens.push(Token {
+                        tk: TokenKind::TK_Dollar,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '~' => tokens.push(Token {
+                        tk: TokenKind::TK_Tilde,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '<' => tokens.push(Token {
+                        tk: TokenKind::TK_LABracket,
+                        val: &buffer[i..i + 1],
+                  }),
+                  '>' => {
+                        if matches!(cur.peek(), Some((_, '>'))) {
+                              cur.next();
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_Append,
+                                    val: &buffer[i..i + 2],
+                              });
+                        } else {
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_RABracket,
+                                    val: &buffer[i..i + 1],
+                              });
+                        }
+                  }
+                  '&' => {
+                        if matches!(cur.peek(), Some((_, '&'))) {
+                              cur.next();
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_And,
+                                    val: &buffer[i..i + 2],
+                              });
+                        } else {
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_Ampersand,
+                                    val: &buffer[i..i + 1],
+                              });
+                        }
+                  }
+                  '|' => {
+                        if matches!(cur.peek(), Some((_, '|'))) {
+                              cur.next();
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_Or,
+                                    val: &buffer[i..i + 2],
+                              });
+                        } else {
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_Pipe,
+                                    val: &buffer[i..i + 1],
+                              });
+                        }
+                  }
+                  '\\' => {
+                        // escape: next char joins a Word literally (e.g. "\ " stays one word)
+                        if let Some((j, p)) = cur.next() {
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_Word,
+                                    val: &buffer[i..j + p.len_utf8()],
+                              });
+                        } else {
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_BSlash,
+                                    val: &buffer[i..i + 1],
+                              });
+                        }
+                  }
+                  '\'' | '"' => {
+                        // quoted span becomes one Word, quotes stripped
+                        let quote = c;
+                        let start = i + 1;
+                        let mut end = start;
+                        let mut closed = false;
+                        for (j, p) in cur.by_ref() {
+                              if p == quote {
+                                    closed = true;
+                                    break;
+                              }
+                              end = j + p.len_utf8();
+                        }
+                        if closed {
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_Word,
+                                    val: &buffer[start..end],
+                              });
+                        } else {
+                              tokens.push(Token {
+                                    tk: TokenKind::TK_Word,
+                                    val: &buffer[start..],
+                              });
+                        }
+                  }
+                  _ => {
+                        // word: consume until space or operator char
+                        let mut end = i + c.len_utf8();
+                        while let Some(&(j, p)) = cur.peek() {
+                              if p == ' ' || p == '\t' || "|<>&;(){}!$~'\"\\#".contains(p) {
+                                    break;
+                              }
+                              end = j + p.len_utf8();
+                              cur.next();
+                        }
+                        tokens.push(Token {
+                              tk: TokenKind::TK_Word,
+                              val: &buffer[i..end],
+                        });
+                  }
             }
       }
 
+      tokens.push(Token {
+            tk: TokenKind::TK_EOF,
+            val: "",
+      });
       return tokens;
 }
