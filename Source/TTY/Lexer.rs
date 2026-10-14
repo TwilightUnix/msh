@@ -28,7 +28,7 @@ pub enum TokenKind {
       TK_Or,          // "||" or operator
       TK_Tilde,       // "~" tilde (home)
 
-      TK_EOF, // End of line
+      TK_EOF, // End of file
 }
 
 #[derive(Debug)]
@@ -166,7 +166,7 @@ pub fn Tokenize<'a>(buffer: &'a str) -> Vec<Token<'a>> {
                         // word: consume until space or operator char
                         let mut end = i + c.len_utf8();
                         while let Some(&(j, p)) = cur.peek() {
-                              if p == ' ' || p == '\t' || "|<>&;(){}!$~'\"\\#".contains(p) {
+                              if p == ' ' || p == '\t' || "|<>&;(){}!$~'\"\\".contains(p) {
                                     break;
                               }
                               end = j + p.len_utf8();
