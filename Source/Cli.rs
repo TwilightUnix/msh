@@ -4,6 +4,8 @@
 ** SPDX-License-Identifier: Apache-2.0
 */
 
+/* Cli.rs - Commands for msh */
+
 fn PrintHelp() {
       println!("Munch shell (msh) - Simple shell for linux.");
       println!("Usage: msh [OPTION]");
@@ -21,6 +23,9 @@ pub fn ParseOption(option: Vec<String>) {
       if option.len() == 2 {
             if option[1] == "-h" || option[1] == "--help" {
                   PrintHelp();
+            }
+            if option[1] == "-v" || option[1] == "--version" {
+                  println!("Munch shell (msh) v0.1.0");
             }
       }
 }

@@ -7,7 +7,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use std::env::{self, Args};
+use std::env::{self};
 use std::io::Write;
 
 mod Cli;
@@ -24,7 +24,8 @@ fn RunCommandLine() {
                   .read_line(&mut input)
                   .expect("Failed to read line");
 
-            crate::TTY::Lexer::Tokenize(input.trim());
+            let tokens = crate::TTY::Lexer::Tokenize(input.trim());
+            let list = crate::TTY::Parser::ParseList(&tokens);
       }
 }
 
