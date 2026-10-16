@@ -6,7 +6,8 @@
 
 /* Parser.rs - tty parser for msh */
 
-use crate::TTY::Lexer::Token;
+use crate::TTY::Error::Error;
+use crate::TTY::Lexer::{Token, TokenKind};
 
 pub enum Separator {
       SP_Semicolon,  // ;
@@ -30,19 +31,48 @@ pub fn ParseCommands() {
       //
 }
 
-pub fn ParsePipeline() {
-      //
+pub fn ParsePipeline<'a>(tklist: &[Token<'a>], pos: &mut usize) -> Result<Pipeline<'a>, Error> {
+      Ok(Pipeline {
+            commands: Vec::new(),
+      })
 }
 
-pub fn ParseList<'a>(tklist: &[Token<'a>]) -> Result<List<'a>, String> {
-      let _ = tklist;
+/* Entry function. Parse list of Token pass the list to ParsePipeline */
+pub fn ParseList<'a>(tklist: &[Token<'a>]) -> Result<List<'a>, Error> {
+      let mut pos: usize = 0;
+      let mut list = List { items: Vec::new() };
 
-      /*
-      let list: List;
-      while tklist != TK_EOF {
-          //
+      while pos < tklist.len() && tklist[pos].tk != TokenKind::TK_EOF {
+            let pipe = ParsePipeline(tklist, &mut pos)?;
+            if pos >= tklist.len() {
+                  return Err(Error::ERR_UnexpectedEOF);
+            }
+
+            match tklist[pos].tk {
+                  TokenKind::TK_Semicolon => {
+                        pos += 1;
+                        list.items.push((pipe, Separator::SP_Semicolon));
+                  }
+                  TokenKind::TK_Ampersand => {
+                        pos += 1;
+                        list.items.push((pipe, Separator::SP_Background));
+                  }
+                  TokenKind::TK_And => {
+                        pos += 1;
+                        list.items.push((pipe, Separator::SP_And));
+                  }
+                  TokenKind::TK_Or => {
+                        pos += 1;
+                        list.items.push((pipe, Separator::SP_Or));
+                  }
+                  TokenKind::TK_EOF => {
+                        // last pipeline; separator unused, Semicolon as dummy
+                        list.items.push((pipe, Separator::SP_Semicolon));
+                        break;
+                  }
+                  _ => return Err(Error::ERR_Syntax(tklist[pos].val.to_string())),
+            }
       }
-      */
 
-      Ok(List { items: Vec::new() })
+      return Ok(list);
 }
