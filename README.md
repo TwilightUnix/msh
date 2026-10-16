@@ -1,4 +1,4 @@
-# msh — Munch Shell
+# Munch Shell (msh)
 
 Simple shell for linux. Interactive, bash-like, currently early v1.
 
