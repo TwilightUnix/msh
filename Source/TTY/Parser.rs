@@ -27,14 +27,39 @@ pub struct List<'a> {
       pub items: Vec<(Pipeline<'a>, Separator)>,
 }
 
-pub fn ParseCommands() {
-      //
+pub fn ParseCommands<'a>(
+      tklist: &[Token<'a>],
+      pos: &mut usize,
+) -> Result<SimpleCommand<'a>, Error> {
+      let _ = (tklist, pos);
+      Ok(SimpleCommand {
+            args: Vec::new(),
+            redirects: Vec::new(),
+      })
 }
 
+/* If TK_Pipe '|' found in a commandline, combine "cmd1 | cmd2" combine both commands */
 pub fn ParsePipeline<'a>(tklist: &[Token<'a>], pos: &mut usize) -> Result<Pipeline<'a>, Error> {
-      Ok(Pipeline {
-            commands: Vec::new(),
-      })
+      let mut commands = Vec::new();
+
+      loop {
+            commands.push(ParseCommands(tklist, pos)?);
+
+            if tklist[*pos].tk == TokenKind::TK_Pipe {
+                  *pos += 1; // consume '|'
+                  if tklist[*pos].tk == TokenKind::TK_EOF {
+                        return Err(Error::ERR_UnexpectedEOF); // example senerio: a |
+                  }
+                  if tklist[*pos].tk == TokenKind::TK_Pipe {
+                        // senerio: a | | b
+                        return Err(Error::ERR_Syntax(tklist[*pos].val.to_string()));
+                  }
+            } else {
+                  break; // ';', '&', '&&', '||', EOF
+            }
+      }
+
+      Ok(Pipeline { commands })
 }
 
 /* Entry function. Parse list of Token pass the list to ParsePipeline */
