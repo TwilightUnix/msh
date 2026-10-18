@@ -82,6 +82,12 @@ Consistency over familiarity. The project intentionally avoids
 `non_snake_case` and `non_camel_case_types` lints are allowed at the
 crate root for this reason.
 
+## License of contributions
+
+msh is released under the Apache License 2.0 (see `LICENSE`). By submitting a
+pull request you agree that your contribution is licensed under the same
+terms, without any additional conditions.
+
 ## Build
 
 ```sh
