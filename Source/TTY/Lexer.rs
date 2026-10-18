@@ -6,32 +6,32 @@
 
 /* Lexer.rs - tty lexer for  */
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum TokenKind {
       TK_Word, // plain text: ls, -l, file.txt, VAR=x, *.rs
 
       /* Operators */
-      TK_BSlash,      // "\" back slash (escape)
-      TK_Semicolon,   // ";" semicolon
-      TK_LRParen,     // "(" left round parenthesis
-      TK_RRParen,     // ")" right round parenthesis
-      TK_LCParen,     // "{" left curly parenthesis
-      TK_RCParen,     // "}" right curly parenthesis
-      TK_LABracket,   // "<" left angle bracket (redirect in)
-      TK_RABracket,   // ">" right angle bracket (redirect out)
+      TK_BSlash,      // "\"  back slash (escape)
+      TK_Semicolon,   // ";"  semicolon
+      TK_LRParen,     // "("  left round parenthesis
+      TK_RRParen,     // ")"  right round parenthesis
+      TK_LCParen,     // "{"  left curly parenthesis
+      TK_RCParen,     // "}"  right curly parenthesis
+      TK_LABracket,   // "<"  left angle bracket (redirect in)
+      TK_RABracket,   // ">"  right angle bracket (redirect out)
       TK_Append,      // ">>" append redirect
-      TK_Exclamation, // "!" exclamation mark (history)
-      TK_Dollar,      // "$" dollar sign (variable)
-      TK_Ampersand,   // "&" ampersand (background)
+      TK_Exclamation, // "!"  exclamation mark (history)
+      TK_Dollar,      // "$"  dollar sign (variable)
+      TK_Ampersand,   // "&"  ampersand (background)
       TK_And,         // "&&" and operator
-      TK_Pipe,        // "|" pipe
+      TK_Pipe,        // "|"  pipe
       TK_Or,          // "||" or operator
-      TK_Tilde,       // "~" tilde (home)
+      TK_Tilde,       // "~"  tilde (home)
 
       TK_EOF, // End of file
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Token<'a> {
       pub tk: TokenKind,
       pub val: &'a str,

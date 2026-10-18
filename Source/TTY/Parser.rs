@@ -9,6 +9,7 @@
 use crate::TTY::Error::Error;
 use crate::TTY::Lexer::{Token, TokenKind};
 
+#[derive(Debug)]
 pub enum Separator {
       SP_Semicolon,  // ;
       SP_Background, // &
@@ -16,13 +17,16 @@ pub enum Separator {
       SP_Or,         // ||
 }
 
+#[derive(Debug)]
 pub struct SimpleCommand<'a> {
       pub args: Vec<Token<'a>>,
-      pub redirects: Vec<Token<'a>>,
+      pub redirects: Vec<(Token<'a>, Token<'a>)>,
 }
+#[derive(Debug)]
 pub struct Pipeline<'a> {
       pub commands: Vec<SimpleCommand<'a>>,
 }
+#[derive(Debug)]
 pub struct List<'a> {
       pub items: Vec<(Pipeline<'a>, Separator)>,
 }
@@ -31,11 +35,40 @@ pub fn ParseCommands<'a>(
       tklist: &[Token<'a>],
       pos: &mut usize,
 ) -> Result<SimpleCommand<'a>, Error> {
-      let _ = (tklist, pos);
-      Ok(SimpleCommand {
-            args: Vec::new(),
-            redirects: Vec::new(),
-      })
+      let mut args = Vec::new();
+      let mut redirects = Vec::new();
+
+      loop {
+            match tklist[*pos].tk {
+                  TokenKind::TK_Word => {
+                        args.push(tklist[*pos].clone());
+                        *pos += 1;
+                  }
+                  TokenKind::TK_LABracket | TokenKind::TK_RABracket | TokenKind::TK_Append => {
+                        let op = tklist[*pos].clone();
+                        *pos += 1;
+                        if tklist[*pos].tk != TokenKind::TK_Word {
+                              return Err(Error::ERR_Syntax(tklist[*pos].val.to_string()));
+                        }
+                        redirects.push((op, tklist[*pos].clone())); // operator + target
+                        *pos += 1;
+                  }
+                  // separators and EOF end this command
+                  TokenKind::TK_Pipe
+                  | TokenKind::TK_Semicolon
+                  | TokenKind::TK_Ampersand
+                  | TokenKind::TK_And
+                  | TokenKind::TK_Or
+                  | TokenKind::TK_EOF => break,
+                  _ => return Err(Error::ERR_Syntax(tklist[*pos].val.to_string())),
+            }
+      }
+
+      if args.is_empty() {
+            return Err(Error::ERR_Syntax(tklist[*pos].val.to_string())); // e.g. "> out"
+      }
+
+      Ok(SimpleCommand { args, redirects })
 }
 
 /* If TK_Pipe '|' found in a commandline, combine "cmd1 | cmd2" combine both commands */

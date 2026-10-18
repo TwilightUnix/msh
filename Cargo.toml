@@ -12,4 +12,8 @@ path = "Source/Main.rs"
 name = "ttylexdump"
 path = "Tools/Debug/TTYLexDump.rs"
 
+[[bin]]
+name = "ttyparsedump"
+path = "Tools/Debug/TTYParseDump.rs"
+
 [dependencies]

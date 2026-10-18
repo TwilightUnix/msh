@@ -24,8 +24,14 @@ fn RunCommandLine() {
                   .read_line(&mut input)
                   .expect("Failed to read line");
 
+            if input.is_empty() {
+                  break; // Ctrl-D (EOF)
+            }
+
             let tokens = crate::TTY::Lexer::Tokenize(input.trim());
-            let list = crate::TTY::Parser::ParseList(&tokens);
+            if let Err(err) = crate::TTY::Parser::ParseList(&tokens) {
+                  println!("{err}");
+            }
       }
 }
 

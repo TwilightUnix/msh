@@ -50,10 +50,11 @@ pub val: &'a str,
 ```
 
 ### Constants
-PascalCase, same as types:
+UPPER_SNAKE_CASE:
 
 ```rust
-const MaxLine: usize = 4096;
+const MAX_LINE: usize = 4096;
+const DEFAULT_PROMPT: &str = "msh> ";
 ```
 
 ### Files and modules
@@ -77,10 +78,11 @@ enum Error {
 
 ## Why
 
-Consistency over familiarity. The project intentionally avoids
-`snake_case`/`SCREAMING_CASE` so the source reads uniformly.
-`non_snake_case` and `non_camel_case_types` lints are allowed at the
-crate root for this reason.
+Consistency over familiarity. The project avoids `snake_case` for types
+and functions so the source reads uniformly; constants are the exception
+and use the conventional `UPPER_SNAKE_CASE`. The `non_snake_case` and
+`non_camel_case_types` lints are allowed at the crate root for this
+reason.
 
 ## License of contributions
 
