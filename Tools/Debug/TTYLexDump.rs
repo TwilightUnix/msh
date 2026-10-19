@@ -7,6 +7,7 @@
 /* TTYLexDump - debug tool: tokenize input lines and dump tokens. */
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
+#![allow(clippy::needless_return)]
 #[path = "../../Source/TTY/Lexer.rs"]
 mod Lexer;
 

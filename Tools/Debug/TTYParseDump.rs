@@ -6,6 +6,10 @@
 
 /* TTYParseDump - debug tool: tokenize + parse input lines and dump the AST. */
 
+#![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+#![allow(clippy::needless_return)]
+
 #[path = "../../Source/TTY/Error.rs"]
 pub mod Error;
 
