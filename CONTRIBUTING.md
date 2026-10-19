@@ -1,99 +1,38 @@
 # Contributing to msh
 
-## Naming Convention
+First of all thank you for deciding to contribute to this project. Here are some
+rules and standards for contributing to this project.
 
-This codebase uses a deliberate C-style naming scheme, not standard Rust style.
-Match it in all new code.
+## Naming convention
 
-### Types
-PascalCase with no underscores:
+This codebase uses a deliberate C-style naming scheme, not standard Rust
+style. Match it in all new code.
 
-```rust
-struct SimpleCommand { ... }
-enum TokenKind { ... }
-pub struct Pipeline { ... }
-```
+| What | Rule | Example |
+| --- | --- | --- |
+| Files, structs, classes, enums | PascalCase | `Lexer.rs`, `Pipeline` |
+| Functions, methods | PascalCase | `Tokenize`, `ParseList` |
+| Namespaces, modules | PascalCase | `TTY::Lexer`, `mod Parser;` |
+| Variables, members, params | snake_case | `tklist`, `redirects` |
+| Constants | UPPER_SNAKE | `DEFAULT_PROMPT` |
+| Enum values | UPPERCASE_ prefix from the enum name | `TK_Word` (`TokenKind`) |
 
-### Enum variants
-`PREFIX_PascalCase` — a short uppercase prefix for the group, then PascalCase:
+Enum prefixes are short and per enum: `TK_` (`TokenKind`), `SP_` (`Separator`),
+`ERR_` (`Error`).
 
-```rust
-enum TokenKind {
-      TK_Word,
-      TK_Pipe,
-      TK_Semicolon,
-}
-enum Separator {
-      SP_Semicolon,
-      SP_Background,
-}
-```
+Modules and filenames match: `Source/TTY/Lexer.rs` -> `mod Lexer;`.
 
-`TK_` for tokens, `SP_` for separators. Pick a short prefix per enum.
+The `non_snake_case` and `non_camel_case_types` lints are allowed at the
+crate root for this reason.
 
-### Functions
-PascalCase, including `pub fn` and methods:
-
-```rust
-fn RunCommandLine() { ... }
-pub fn ParseList(...) { ... }
-pub fn Tokenize(...) { ... }
-```
-
-### Variables, fields, params
-snake_case:
-
-```rust
-let mut token_list = ...;
-let mut pos: usize = 0;
-pub val: &'a str,
-```
-
-### Constants
-UPPER_SNAKE_CASE:
-
-```rust
-const MAX_LINE: usize = 4096;
-const DEFAULT_PROMPT: &str = "msh> ";
-```
-
-### Files and modules
-PascalCase filenames matching the module name:
-
-```
-Source/TTY/Lexer.rs   ->  mod Lexer;
-Source/TTY/Parser.rs  ->  mod Parser;
-```
-
-### Error variant prefix
-`ERR_`:
-
-```rust
-enum Error {
-      ERR_Unknown,
-      ERR_Syntax(String),
-      ERR_UnexpectedEOF,
-}
-```
-
-## Why
+### Why
 
 Consistency over familiarity. The project avoids `snake_case` for types
 and functions so the source reads uniformly; constants are the exception
-and use the conventional `UPPER_SNAKE_CASE`. The `non_snake_case` and
-`non_camel_case_types` lints are allowed at the crate root for this
-reason.
+and use the conventional `UPPER_SNAKE_CASE`.
 
 ## License of contributions
 
 msh is released under the Apache License 2.0 (see `LICENSE`). By submitting a
 pull request you agree that your contribution is licensed under the same
 terms, without any additional conditions.
-
-## Build
-
-```sh
-cargo build
-cargo run --bin msh
-cargo test
-```
