@@ -21,12 +21,10 @@ pub enum TokenKind {
       TK_RABracket,   // ">"  right angle bracket (redirect out)
       TK_Append,      // ">>" append redirect
       TK_Exclamation, // "!"  exclamation mark (history)
-      TK_Dollar,      // "$"  dollar sign (variable)
       TK_Ampersand,   // "&"  ampersand (background)
       TK_And,         // "&&" and operator
       TK_Pipe,        // "|"  pipe
       TK_Or,          // "||" or operator
-      TK_Tilde,       // "~"  tilde (home)
 
       TK_EOF, // End of file
 }
@@ -69,14 +67,21 @@ pub fn Tokenize<'a>(buffer: &'a str) -> Vec<Token<'a>> {
                         tk: TokenKind::TK_Exclamation,
                         val: &buffer[i..i + 1],
                   }),
-                  '$' => tokens.push(Token {
-                        tk: TokenKind::TK_Dollar,
-                        val: &buffer[i..i + 1],
-                  }),
-                  '~' => tokens.push(Token {
-                        tk: TokenKind::TK_Tilde,
-                        val: &buffer[i..i + 1],
-                  }),
+                  '$' | '~' => {
+                        // start of a word: expansion happens later, keep '$'/'~' in the text
+                        let mut end = i + c.len_utf8();
+                        while let Some(&(j, p)) = cur.peek() {
+                              if p == ' ' || p == '\t' || "|<>&;(){}!'\"\\".contains(p) {
+                                    break;
+                              }
+                              end = j + p.len_utf8();
+                              cur.next();
+                        }
+                        tokens.push(Token {
+                              tk: TokenKind::TK_Word,
+                              val: &buffer[i..end],
+                        });
+                  }
                   '<' => tokens.push(Token {
                         tk: TokenKind::TK_LABracket,
                         val: &buffer[i..i + 1],
@@ -138,35 +143,25 @@ pub fn Tokenize<'a>(buffer: &'a str) -> Vec<Token<'a>> {
                         }
                   }
                   '\'' | '"' => {
-                        // quoted span becomes one Word, quotes stripped
+                        // quoted span is one Word; keep quotes, expansion strips them later
                         let quote = c;
-                        let start = i + 1;
-                        let mut end = start;
-                        let mut closed = false;
+                        let mut end = i + c.len_utf8();
                         for (j, p) in cur.by_ref() {
+                              end = j + p.len_utf8();
                               if p == quote {
-                                    closed = true;
                                     break;
                               }
-                              end = j + p.len_utf8();
                         }
-                        if closed {
-                              tokens.push(Token {
-                                    tk: TokenKind::TK_Word,
-                                    val: &buffer[start..end],
-                              });
-                        } else {
-                              tokens.push(Token {
-                                    tk: TokenKind::TK_Word,
-                                    val: &buffer[start..],
-                              });
-                        }
+                        tokens.push(Token {
+                              tk: TokenKind::TK_Word,
+                              val: &buffer[i..end],
+                        });
                   }
                   _ => {
                         // word: consume until space or operator char
                         let mut end = i + c.len_utf8();
                         while let Some(&(j, p)) = cur.peek() {
-                              if p == ' ' || p == '\t' || "|<>&;(){}!$~'\"\\".contains(p) {
+                              if p == ' ' || p == '\t' || "|<>&;(){}!'\"\\".contains(p) {
                                     break;
                               }
                               end = j + p.len_utf8();
