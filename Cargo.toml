@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0"
 
+[lib]
+name = "msh"
+path = "Source/Lib.rs"
+
 [[bin]]
 name = "msh"
 path = "Source/Main.rs"
@@ -15,5 +19,13 @@ path = "Tools/Debug/TTYLexDump.rs"
 [[bin]]
 name = "ttyparsedump"
 path = "Tools/Debug/TTYParseDump.rs"
+
+[[test]]
+name = "LexerTest"
+path = "Tests/LexerTest.rs"
+
+[[test]]
+name = "ParserTest"
+path = "Tests/ParserTest.rs"
 
 [dependencies]

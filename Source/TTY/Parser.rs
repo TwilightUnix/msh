@@ -117,10 +117,16 @@ pub fn ParseList<'a>(tklist: &[Token<'a>]) -> Result<List<'a>, Error> {
                   }
                   TokenKind::TK_And => {
                         pos += 1;
+                        if tklist[pos].tk == TokenKind::TK_EOF {
+                              return Err(Error::ERR_UnexpectedEOF); // "a &&" with nothing after
+                        }
                         list.items.push((pipe, Separator::SP_And));
                   }
                   TokenKind::TK_Or => {
                         pos += 1;
+                        if tklist[pos].tk == TokenKind::TK_EOF {
+                              return Err(Error::ERR_UnexpectedEOF); // "a ||" with nothing after
+                        }
                         list.items.push((pipe, Separator::SP_Or));
                   }
                   TokenKind::TK_EOF => {

@@ -8,11 +8,10 @@
 #![allow(non_camel_case_types)]
 #![allow(clippy::needless_return)]
 
+use msh::Cli;
+use msh::TTY;
 use std::env::{self};
 use std::io::Write;
-
-mod Cli;
-mod TTY;
 
 fn RunCommandLine() {
       loop {
@@ -29,8 +28,8 @@ fn RunCommandLine() {
                   break; // Ctrl-D (EOF)
             }
 
-            let tokens = crate::TTY::Lexer::Tokenize(input.trim());
-            if let Err(err) = crate::TTY::Parser::ParseList(&tokens) {
+            let tokens = TTY::Lexer::Tokenize(input.trim());
+            if let Err(err) = TTY::Parser::ParseList(&tokens) {
                   println!("{err}");
             }
       }
@@ -42,5 +41,5 @@ fn main() {
             RunCommandLine();
       }
 
-      crate::Cli::ParseOption(Args);
+      Cli::ParseOption(Args);
 }
